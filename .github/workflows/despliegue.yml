@@ -36,18 +36,23 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
-        # Crear el directorio .ssh en el entorno de ejecución
-        mkdir -p ~/.ssh
-        # Escribir la clave privada en el archivo id_rsa y asignar los permisos adecuados
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        # Agregar la clave pública del servidor al archivo known_hosts para evitar problemas con SSH
-        ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+        # Usar un directorio temporal para la configuración de SSH
+        mkdir -p /tmp/.ssh
+        echo "$SSH_PRIVATE_KEY" > /tmp/.ssh/id_rsa
+        chmod 600 /tmp/.ssh/id_rsa
+        ssh-keyscan -H $HOST >> /tmp/.ssh/known_hosts
+        
+        # Establecer el directorio de SSH de forma temporal para la sesión SSH
+        export SSH_DIR="/tmp/.ssh"
+
         # Crear el directorio de despliegue en el servidor remoto
-        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
-        # Usar rsync para transferir los archivos
+        ssh -o StrictHostKeyChecking=no -i /tmp/.ssh/id_rsa $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
+
+        # Usar rsync para transferir los archivos al servidor remoto
         rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
+
         # Instalar dependencias de producción en el servidor remoto
-        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
+        ssh -o StrictHostKeyChecking=no -i /tmp/.ssh/id_rsa $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
+
         # Reiniciar el servicio Apache en el servidor remoto
-        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
+        ssh -o StrictHostKeyChecking=no -i /tmp/.ssh/id_rsa $USERNAME@$HOST "sudo systemctl restart apache2"
