@@ -34,18 +34,18 @@
           },
           "configurations": {
             "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
-                }
-              ],
+            "budgets": [
+              {
+                "type": "initial",
+                "maximumWarning": "2MB",  
+                "maximumError": "2MB"    
+              },
+              {
+                "type": "anyComponentStyle",
+                "maximumWarning": "4kB",
+                "maximumError": "8kB"
+              }
+            ],
               "outputHashing": "all",
               "serviceWorker": "ngsw-config.json"
             },
@@ -98,5 +98,12 @@
   },
   "cli": {
     "analytics": false
-  }
+  },
+  "angularCompilerOptions": {
+  "strictTemplates": true,
+  "fullTemplateTypeCheck": true,
+  "skipTemplateCodegen": false,
+  "enableIvy": true
+}
+
 }
