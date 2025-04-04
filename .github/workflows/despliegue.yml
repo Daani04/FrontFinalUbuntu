@@ -61,7 +61,10 @@ jobs:
         ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
 
         # Sincronizar los archivos del proyecto con el servidor
-        rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./dist/ $USERNAME@$HOST:$DEPLOY_PATH
+        rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' --exclude 'node_modules' ./dist/ $USERNAME@$HOST:$DEPLOY_PATH
+
+        # Copiar package.json y package-lock.json al servidor (si existe)
+        rsync -avz --exclude 'node_modules' --exclude 'dist' ./ $USERNAME@$HOST:$DEPLOY_PATH
 
         # Opcional: Instalar dependencias en el servidor (si es necesario)
         ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
