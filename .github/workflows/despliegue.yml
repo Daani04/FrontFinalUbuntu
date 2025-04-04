@@ -1,62 +1,45 @@
-name: CI/CD Pipeline for HolaMundoMultilenguaje
+name: CI/CD Pipeline for Angular Project
 
 on:
   push:
     branches:
-      - master
+      - master  # Cambiado de "main" a "master"
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-      
-      - name: Install dependencies
-        run: composer install
-      
-      - name: Run tests
-        run: ./vendor/bin/phpunit tests
+    # 1. Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    # 2. Set up Node.js (instalar Node.js)
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'  # O la versión que estés usando
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
+    # 3. Instalar dependencias de Angular (npm install)
+    - name: Install dependencies
+      run: npm install
 
-      - name: Install dependencies
-        run: composer install
+    # 4. Construir la aplicación (si es necesario)
+    - name: Build Angular app
+      run: npm run build
 
-      - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.HOST }}
-          USERNAME: ${{ secrets.USERNAME }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-          # Use SSH to create the deploy path if it doesn't exist
-          ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
-          
-          # Sync the application files to the server
-          rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' . $USERNAME@$HOST:$DEPLOY_PATH
-          
-          # Optionally, run Composer install on the server
-          ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && composer install --no-dev --optimize-autoloader"
-          
-          # Restart Apache if needed
-          ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
+    # 5. Desplegar en el servidor
+    - name: Deploy to server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
+        rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
+        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
+        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
