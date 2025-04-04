@@ -36,12 +36,18 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
-        mkdir -p /home/runner/.ssh
-        echo "$SSH_PRIVATE_KEY" > /home/runner/.ssh/id_rsa
-        chmod 600 /home/runner/.ssh/id_rsa
-        ssh-keyscan -H $HOST >> /home/runner/.ssh/known_hosts
+        # Crear el directorio .ssh en el entorno de ejecución
+        mkdir -p ~/.ssh
+        # Escribir la clave privada en el archivo id_rsa y asignar los permisos adecuados
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        # Agregar la clave pública del servidor al archivo known_hosts para evitar problemas con SSH
+        ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+        # Crear el directorio de despliegue en el servidor remoto
         ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
+        # Usar rsync para transferir los archivos
         rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
+        # Instalar dependencias de producción en el servidor remoto
         ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
+        # Reiniciar el servicio Apache en el servidor remoto
         ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
-
