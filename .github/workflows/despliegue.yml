@@ -31,13 +31,19 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
+        # Crear el directorio .ssh y agregar la clave privada
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+
+        # Agregar la clave pública del servidor al archivo known_hosts
         ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-        # Usar sudo para crear el directorio si es necesario
+
+        # Verificar si se agregó correctamente
+        cat ~/.ssh/known_hosts
+
+        # Ahora, puedes realizar la conexión sin que falle la verificación del host
         sudo mkdir -p $DEPLOY_PATH
-        # Copiar archivos al servidor usando sudo
         sudo rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
         sudo ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
         sudo ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
