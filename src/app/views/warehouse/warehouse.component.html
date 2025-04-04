@@ -1,0 +1,41 @@
+<div class="container">
+  <h1>MIS ALMACENES</h1>
+  <div class="row">
+    <div class="col-12 col-sm-6 col-md-4 mb-4 mt-4 d-flex justify-content-center">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">NOMBRE ALMACEN</h4>
+          <div id="warehouseImgCont">
+            <img id="logo" src="/img/almacen.png" alt="logo">
+          </div>
+          <p class="card-text">Numero de articulos: </p>
+          <p class="card-text">Capacidad: </p>
+          <p class="card-text">??</p>
+          <a href="#" class="card-link">Ver articulos</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-4 mb-4 mt-4 d-flex justify-content-center">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">AÑADIR NUEVO ALMACEN</h4>
+          @if (formWarehouse === false) {
+            <div class="image-container" (click)="controlForm()">
+              <img id="addWarehouseButton" src="/img/addPhoto.png" class="img-fluid" alt="Añadir foto">
+            </div>
+          } @else {
+            <form class="text-center">
+              <label for="name" class="form-label">Nombre del almacén</label>
+              <input type="text" id="name" name="name" class="form-control my-2" required formControlName="warehouseName">
+              <button type="submit" class="btn">Crear</button>
+            </form>
+              <p id="close" (click)="controlForm()">Cerrar</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

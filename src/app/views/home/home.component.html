@@ -1,0 +1,141 @@
+<h1>BIENVENIDO </h1>
+<div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-12 mb-4">
+        <div class="double-chart h-100">
+          <div class="graphics">
+            <h3>Entrada de productos</h3>
+            <app-chart [type]="'line'" [data]="lineExitProducts"></app-chart> 
+          </div>
+          <div class="graphics">
+            <h3>Salida de productos</h3>
+            <app-chart [type]="'line'" [data]="lineEntrateProducts"></app-chart>
+          </div>
+        </div>
+      </div>     
+    </div>
+
+    <div class="row justify-content-center gap-5 custom-row" style="margin-bottom: 50px; margin-top: 50px; text-align: center;">
+      <div class="col-md-5 p-4  rounded" style=" box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); ">
+      <h3>Mis almacenes</h3>
+      <p class="warehouseP">No tienes ningun almacen</p>
+      @if (true) { <!--Temporal, la condicion tiene que se existen o no almacenes-->
+        @if (cont === 0) {
+          <button type="button" class="btn" (click)="toggleForm()">Añadir nuevo almacén</button>
+        } @else {
+          <form [formGroup]="reactiveForm" id="warehouseName" class="text-center">
+            <label for="name" class="form-label">Nombre del almacén</label>
+            <input type="text" id="name" name="name" class="form-control my-2" placeholder="Introduzca un nombre" required formControlName="warehouseName">
+
+            <label for="city" class="form-label">Ciudad</label>
+            <input type="text" id="city" name="city" class="form-control my-2" placeholder="Introduzca la ciudad" required formControlName="locationWarehouseCity">
+
+            <label for="location" class="form-label">Ubicación almacén</label>
+            <input type="text" id="location" name="location" class="form-control my-2" placeholder="Introduzca la calle" required formControlName="locationWarehouseStreet">
+            <button type="submit" class="btn" (click)="getStreetForm()">Crear</button>
+          </form>
+            <p class="close" (click)="closeWarehouse()">Cerrar</p>
+        }
+      } @else {
+        <p>Almacenes ==></p> <!--Temporal, aqui se tienen que mostrar los almacenes-->
+      }
+
+    </div>
+
+    <div class="col-md-5 p-4  rounded" style="text-align: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
+      <h3>Mis productos</h3>
+      <p class="warehouseP">No tienes ningun producto</p>
+      @if (true) { <!--Temporal, la condicion tiene que se existen o no almacenes-->
+        @if (contInsertionData === 1) {
+          <button class="btn" (click)="changeShowForm()">Añadir manualmente</button> 
+          <button class="btn" [routerLink]="['/login']" (click)="changeShowForm()">Escanear productos</button> 
+        } @else {
+          <button class="btn" (click)="insertionMethod()">Añadir productos</button> 
+        }       
+      } @else {
+        <p>Almacenes ==></p> <!--Temporal, aqui se tienen que mostrar los almacenes-->
+      }
+      @if ( showForm === true) {
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+          <div class="form-group mb-3">
+            <label for="name">Nombre</label>
+            <input id="name" formControlName="name" type="text" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="brand">Marca</label>
+            <input id="brand" formControlName="brand" type="text" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="price">Precio</label>
+            <input id="price" formControlName="price" type="number" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="stock">Stock</label>
+            <input id="stock" formControlName="stock" type="number" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="productType">Tipo de Producto</label>
+            <input id="productType" formControlName="productType" type="text" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="expirationDate">Fecha de Expiración</label>
+            <input id="expirationDate" formControlName="expirationDate" type="date" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="warrantyPeriod">Período de Garantía</label>
+            <input id="warrantyPeriod" formControlName="warrantyPeriod" type="number" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="weight">Peso</label>
+            <input id="weight" formControlName="weight" type="number" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="dimensions">Dimensiones</label>
+            <input id="dimensions" formControlName="dimensions" type="text" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="entryDate">Fecha de Entrada</label>
+            <input id="entryDate" formControlName="entryDate" type="date" class="form-control" />
+          </div>
+          
+          <div class="form-group mb-3">
+            <label for="productPhoto">Foto del Producto</label>
+            <input id="productPhoto" formControlName="productPhoto" type="file" class="form-control" accept="image/*" />
+          </div>
+          
+          <button type="submit" class="btn btn-success" [disabled]="productForm.invalid">Enviar</button>
+        </form>
+        <p class="close" (click)="closeProducts()">Cerrar</p>
+      }
+    </div>
+  </div>
+
+  <div class="row justify-content-center gap-5 custom-row" style="margin-bottom: 50px; margin-top: 50px; text-align: center;">
+    <div class="col-md-5  p-4  rounded" style=" box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); ">
+      <h3>Añadir producto</h3>
+      <img id="addAndRemove" src="/img/addPhoto.png" class="img-fluid" alt="Añadir foto" (click)="openScannerAdd()">
+      @if (openAddScanner === true) {
+        <app-barcode-scanner></app-barcode-scanner>
+      }
+    </div>
+
+    <div class="col-md-5 p-4  rounded" style="text-align: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
+      <h3>Retirar producto</h3>
+      <img id="addAndRemove" src="/img/removePhoto.png" class="img-fluid" alt="Añadir foto" (click)="openScannerRemove()">
+      @if (openDeleteScanner === true) {
+        <app-barcode-scanner></app-barcode-scanner>
+      }
+    </div>
+  </div>
+
+</div>
+<app-footer></app-footer>

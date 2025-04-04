@@ -1,0 +1,11 @@
+  @if (isOpen === true) {
+    <div class="modal-overlay">
+    <div class="modal-content">
+      <h2>¿Estás seguro de que deseas eliminar tu cuenta?</h2>
+      <p>Esta acción es irreversible.</p>
+      <button id="delete" (click)="confirm()">Sí, eliminar cuenta</button>
+      <button id="close" (click)="close()">Cancelar</button>
+    </div>
+  </div>
+  }
+
