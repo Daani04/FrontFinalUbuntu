@@ -6,9 +6,8 @@ on:
       - master
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -16,13 +15,31 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '18.x'
+        node-version: '18.x'  # Ajusta la versión si es necesario
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run tests
+      run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18.x'  # Ajusta la versión si es necesario
 
     - name: Install dependencies
       run: npm install
 
     - name: Build Angular app
-      run: npm run build
+      run: npm run build --prod  # Cambia a "build" si no quieres producción
 
     - name: Deploy to server
       env:
@@ -36,14 +53,17 @@ jobs:
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
-        # Agregar la clave pública del servidor al archivo known_hosts
+        # Agregar la clave del servidor al archivo known_hosts para evitar el error de verificación de host
         ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
 
-        # Verificar si se agregó correctamente
-        cat ~/.ssh/known_hosts
+        # Crear el directorio de despliegue si no existe
+        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
 
-        # Ahora, puedes realizar la conexión sin que falle la verificación del host
-        sudo mkdir -p $DEPLOY_PATH
-        sudo rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
-        sudo ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
-        sudo ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
+        # Sincronizar los archivos del proyecto con el servidor
+        rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./dist/ $USERNAME@$HOST:$DEPLOY_PATH
+
+        # Opcional: Instalar dependencias en el servidor (si es necesario)
+        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
+
+        # Reiniciar el servidor Apache (ajusta si usas otro servidor)
+        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
