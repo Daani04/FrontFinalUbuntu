@@ -3,32 +3,27 @@ name: CI/CD Pipeline for Angular Project
 on:
   push:
     branches:
-      - master  # Cambiado de "main" a "master"
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout the code
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # 2. Set up Node.js (instalar Node.js)
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '18.x'  # O la versión que estés usando
+        node-version: '18.x'
 
-    # 3. Instalar dependencias de Angular (npm install)
     - name: Install dependencies
       run: npm install
 
-    # 4. Construir la aplicación (si es necesario)
     - name: Build Angular app
       run: npm run build
 
-    # 5. Desplegar en el servidor
     - name: Deploy to server
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -36,24 +31,13 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
-        # Crear un archivo temporal de la clave privada en el entorno de ejecución
-        echo "$SSH_PRIVATE_KEY" > /tmp/id_rsa
-        chmod 600 /tmp/id_rsa
-        
-        # Añadir el host remoto al archivo known_hosts
-        ssh-keyscan -H $HOST >> /tmp/known_hosts
-        
-        # Usar la clave privada con SSH sin necesidad de crear directorios
-        export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
-
-        # Crear el directorio de despliegue en el servidor remoto
-        ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa $USERNAME@$HOST "mkdir -p $DEPLOY_PATH"
-
-        # Usar rsync para transferir los archivos al servidor remoto
-        rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
-
-        # Instalar dependencias de producción en el servidor remoto
-        ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
-
-        # Reiniciar el servicio Apache en el servidor remoto
-        ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa $USERNAME@$HOST "sudo systemctl restart apache2"
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+        # Usar sudo para crear el directorio si es necesario
+        sudo mkdir -p $DEPLOY_PATH
+        # Copiar archivos al servidor usando sudo
+        sudo rsync -avz --delete --no-t --exclude 'tests' --exclude '.git' ./ $USERNAME@$HOST:$DEPLOY_PATH
+        sudo ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "cd $DEPLOY_PATH && npm install --production"
+        sudo ssh -o StrictHostKeyChecking=no $USERNAME@$HOST "sudo systemctl restart apache2"
